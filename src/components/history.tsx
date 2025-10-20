@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, List, Hash, FileText, Trash2, Folder } from 'lucide-react';
+import { Clock, Hash, FileText, Trash2, FolderOpen } from 'lucide-react';
 import { PromptItem } from './prompt-item';
 import type { HistoryItem } from '@/lib/types';
 
@@ -46,7 +46,7 @@ export function History({ items, onClear }: HistoryProps) {
             <AccordionItem key={item.id} value={item.id} className="border-b-0 mb-2">
               <AccordionTrigger className="font-headline text-xl bg-background rounded-lg p-4 hover:no-underline hover:bg-muted/50">
                 <div className="flex items-center gap-3">
-                    <Folder className="h-6 w-6 text-primary" />
+                    <FolderOpen className="h-6 w-6 text-primary" />
                     <span>{item.topic}</span>
                 </div>
               </AccordionTrigger>
