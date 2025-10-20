@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { PromptGenerator } from '@/components/prompt-generator';
 import { Wand2, LogIn, LogOut, Loader2 } from 'lucide-react';
 import { useUser } from '@/firebase';
@@ -40,6 +41,11 @@ function AuthButton() {
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <main className="container mx-auto px-4 py-8 md:py-16">
@@ -60,13 +66,13 @@ export default function Home() {
           prompts for you.
         </p>
       </div>
-      {isUserLoading ? (
+      {isUserLoading && isClient ? (
          <div className="flex items-center justify-center h-64">
             <Loader2 className="h-16 w-16 text-primary animate-spin" />
          </div>
       ) : user ? (
         <PromptGenerator />
-      ) : (
+      ) : isClient ? (
         <div className="mt-12 text-center">
           <p className="text-xl font-semibold">Please sign in to generate prompts.</p>
           <p className="text-muted-foreground">Your prompt history will be saved to your account.</p>
@@ -77,7 +83,7 @@ export default function Home() {
             </Button>
           </Link>
         </div>
-      )}
+      ) : null}
     </main>
   );
 }
