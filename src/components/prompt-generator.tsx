@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useState, useEffect, useRef } from 'react';
+import { useFormStatus } from 'react-dom';
 import { handleGeneratePrompts } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,7 +15,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Sparkles, Loader2, Bot } from 'lucide-react';
-import React, { useState, useEffect, useRef } from 'react';
 import { PromptItem } from './prompt-item';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -49,7 +49,7 @@ function SubmitButton() {
 }
 
 export function PromptGenerator() {
-  const [state, formAction] = useFormState(handleGeneratePrompts, initialState);
+  const [state, formAction] = useActionState(handleGeneratePrompts, initialState);
   const [promptCount, setPromptCount] = useState(10);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
