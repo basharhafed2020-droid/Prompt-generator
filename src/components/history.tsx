@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clock, List, Hash, FileText, Trash2 } from 'lucide-react';
 import { PromptItem } from './prompt-item';
-import type { HistoryItem } from './prompt-generator';
+import type { HistoryItem } from '@/lib/types';
 
 interface HistoryProps {
   items: HistoryItem[];
@@ -18,6 +18,19 @@ interface HistoryProps {
 }
 
 export function History({ items, onClear }: HistoryProps) {
+  if (items.length === 0) {
+    return (
+        <Card className="shadow-xl rounded-xl bg-card">
+        <CardHeader>
+          <CardTitle className="font-headline text-3xl">History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">Your prompt history is empty. Generate some prompts to see them here.</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className="shadow-xl rounded-xl bg-card">
       <CardHeader className="flex flex-row items-center justify-between">

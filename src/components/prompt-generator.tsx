@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState, useEffect, useRef } from 'react';
+import { useActionState, useState, useEffect, useRef, useMemo } from 'react';
 import { useFormStatus } from 'react-dom';
 import { handleGeneratePrompts } from '@/app/actions';
 import { Button } from '@/components/ui/button';
@@ -19,14 +19,11 @@ import { PromptItem } from './prompt-item';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { History } from './history';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { addDoc, collection, deleteDoc, getDocs, query } from 'firebase/firestore';
+import type { HistoryItem } from '@/lib/types';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
-export type HistoryItem = {
-  id: string;
-  topic: string;
-  number: number;
-  prompts: string[];
-  createdAt: string;
-};
 
 const initialState = {
   message: null,
@@ -60,20 +57,17 @@ function SubmitButton() {
 export function PromptGenerator() {
   const [state, formAction] = useActionState(handleGeneratePrompts, initialState);
   const [promptCount, setPromptCount] = useState(10);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  const { user } = useUser();
+  const firestore = useFirestore();
 
-  useEffect(() => {
-    const storedHistory = localStorage.getItem('promptHistory');
-    if (storedHistory) {
-      setHistory(JSON.parse(storedHistory));
-    }
-  }, []);
+  const historyCollectionRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return collection(firestore, `users/${user.uid}/prompts`);
+  }, [user, firestore]);
 
-  useEffect(() => {
-    localStorage.setItem('promptHistory', JSON.stringify(history));
-  }, [history]);
+  const { data: history, isLoading: isHistoryLoading } = useCollection<HistoryItem>(historyCollectionRef);
 
   useEffect(() => {
     if (state.message && state.message !== 'Success') {
@@ -87,22 +81,35 @@ export function PromptGenerator() {
       });
     }
 
-    if (state.message === 'Success' && state.prompts.length > 0) {
+    if (state.message === 'Success' && state.prompts.length > 0 && user && firestore) {
       const topic = formRef.current?.topic.value;
-      const newHistoryItem: HistoryItem = {
-        id: new Date().toISOString(),
+      const newHistoryItem = {
         topic: topic,
         number: promptCount,
         prompts: state.prompts,
         createdAt: new Date().toISOString(),
+        userId: user.uid,
       };
-      setHistory(prevHistory => [newHistoryItem, ...prevHistory]);
+      const historyRef = collection(firestore, `users/${user.uid}/prompts`);
+      addDocumentNonBlocking(historyRef, newHistoryItem);
     }
-  }, [state, toast, promptCount]);
+  }, [state, toast, promptCount, user, firestore]);
 
-  const handleClearHistory = () => {
-    setHistory([]);
+  const handleClearHistory = async () => {
+    if (!user || !firestore) return;
+    const historyRef = collection(firestore, `users/${user.uid}/prompts`);
+    const snapshot = await getDocs(historyRef);
+    snapshot.forEach((doc) => {
+        deleteDoc(doc.ref).catch(error => {
+            console.error("Error removing document: ", error);
+        });
+    });
   };
+  
+  const sortedHistory = useMemo(() => {
+    if (!history) return [];
+    return [...history].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [history]);
 
   return (
     <>
@@ -198,11 +205,15 @@ export function PromptGenerator() {
           </CardContent>
         </Card>
       </div>
-      {history.length > 0 && (
-        <div className="mt-12">
-          <History items={history} onClear={handleClearHistory} />
+      <div className="mt-12">
+        {isHistoryLoading ? (
+            <div className="flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        ) : (
+            <History items={sortedHistory} onClear={handleClearHistory} />
+        )}
         </div>
-      )}
     </>
   );
 }
