@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -31,12 +31,17 @@ export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
+
   if (loading) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
 
   if (user) {
-    router.push('/');
     return null;
   }
 
