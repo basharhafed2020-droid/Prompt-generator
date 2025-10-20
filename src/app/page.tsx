@@ -61,9 +61,7 @@ export default function Home() {
             <AuthButton />
         </div>
         <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-          Generate unique, detailed prompts for AI image generation. Simply
-          provide a topic, choose the quantity, and let our AI craft the perfect
-          prompts for you.
+          PROMPT GENERATOR
         </p>
       </div>
       {isUserLoading && isClient ? (
