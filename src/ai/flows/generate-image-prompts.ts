@@ -30,23 +30,22 @@ const generateImagePromptsPrompt = ai.definePrompt({
   name: 'generateImagePromptsPrompt',
   input: {schema: GenerateImagePromptsInputSchema},
   output: {schema: GenerateImagePromptsOutputSchema},
-  prompt: `You are an AI assistant specialized in generating unique, highly-detailed image generation prompts.
+  prompt: `You are an AI assistant specialized in generating unique, highly-detailed, and artistic image generation prompts. Your goal is to create prompts that result in original compositions, avoiding clichés and generic stock photo aesthetics.
 
-I will give you a topic (niche, country, or theme) and a number. You will generate that number of unique, detailed, and creative image generation prompts suitable for use in AI image generation sites like Midjourney, Leonardo, Firefly, and DALL·E.
+I will give you a topic (niche, country, or theme) and a number. You will generate that number of unique image generation prompts suitable for AI image generators like Midjourney, Leonardo, Firefly, and DALL·E.
 
 Topic: {{{topic}}}
 Number of prompts: {{{number}}}
 
 Instructions:
-1.  Make each prompt unique and non-repetitive.
-2.  Each prompt must be very descriptive and detailed, like a paragraph. Describe the camera angle (e.g., low-angle, wide-shot), the setting, the architecture, textures, the sky, lighting conditions (e.g., bright, diffused), color palette, overall mood, and artistic style.
-3.  Use English only.
+1.  **Originality is Key:** Generate prompts for unique, original compositions that do not closely resemble existing stock images. Think about unexpected combinations, surreal concepts, and unconventional perspectives. Avoid generic scenes (e.g., "business people shaking hands").
+2.  **Highly Descriptive:** Each prompt must be a detailed paragraph. Describe the camera angle (e.g., Dutch angle, drone shot), the setting's specific details, textures, the sky (e.g., stormy, aurora borealis), lighting (e.g., dramatic backlighting, chiaroscuro), color palette, overall mood, and a specific artistic style (e.g., afrofuturism, vaporwave, magical realism).
+3.  **Use English only.**
 4.  Start each prompt with a sequential number (1., 2., 3., etc.).
 5.  Do not add any extra text other than the prompts themselves.
 6.  Do not use any unnecessary symbols.
 7.  Do not include inappropriate content.
-8.  Focus on visual details that help produce professional, high-quality, and photorealistic images.
-9.  Here is an example of a good, detailed prompt: "A low-angle, wide-shot perspective captures the imposing Makkah Royal Clock Tower against a bright sky. The architecture is a blend of modern skyscraper design with Islamic architectural motifs, featuring intricate detailing on its facade, including decorative arches and patterned stonework in bright, sandy beige and terracotta tones. The tower itself is a colossal structure, its clock face prominently displayed at its apex, beneath a golden spire topped with a crescent moon. Adjacent to the main tower, older, more traditional minarets with slender, towering spires punctuate the skyline, their stone surfaces weathered and aged. The sky is a vibrant, dynamic canvas of bright blue, heavily textured with voluminous, white cumulus clouds that cast subtle brights, suggesting a bright, mid-day sun. The lighting is bright and slightly diffused, highlighting the architectural textures and casting distinct brights that add depth to the scene. The overall color palette is dominated by bright earth tones of the buildings, contrasting with the cool blues and whites of the sky, creating a visually striking and grand atmosphere. The mood is one of awe, grandeur, and spiritual significance, with a sense of bustling activity suggested by the blurred figures at the base of the buildings. The style is realistic, with a slightly saturated color saturation that enhances the vibrancy of the scene."
+8.  **Example of a good, detailed, and original prompt:** "A cinematic low-angle shot from inside a bioluminescent cave, where glowing crystalline structures illuminate an ancient, moss-covered library. A lone scholar, dressed in futuristic robes, is studying a holographic star map projected from a floating artifact. The air is thick with shimmering spores, and the lighting is a mix of cool blues from the crystals and warm golds from the hologram, creating a stark contrast. The mood is one of quiet discovery and ancient mystery, rendered in a style that blends science fiction with dark fantasy."
 `,
 });
 
