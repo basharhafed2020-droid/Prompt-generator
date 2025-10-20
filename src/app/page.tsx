@@ -1,23 +1,26 @@
 'use client';
 
 import { PromptGenerator } from '@/components/prompt-generator';
-import { Wand2, LogIn, LogOut } from 'lucide-react';
-import { useAuth, useUser } from '@/firebase';
+import { Wand2, LogIn, LogOut, Loader2 } from 'lucide-react';
+import { useUser } from '@/firebase';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { getAuth, signOut } from 'firebase/auth';
 
 function AuthButton() {
   const { user, isUserLoading } = useUser();
-  const auth = getAuth();
 
   if (isUserLoading) {
     return <Button variant="outline" size="sm" disabled>Loading...</Button>;
   }
 
   if (user) {
+    const handleSignOut = () => {
+      const auth = getAuth();
+      signOut(auth);
+    };
     return (
-      <Button variant="outline" size="sm" onClick={() => signOut(auth)}>
+      <Button variant="outline" size="sm" onClick={handleSignOut}>
         <LogOut className="mr-2 h-4 w-4" />
         Sign Out
       </Button>
@@ -78,20 +81,3 @@ export default function Home() {
     </main>
   );
 }
-
-const Loader2 = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-    </svg>
-  );
