@@ -122,7 +122,7 @@ export function PromptGenerator() {
   }, [history]);
 
   const handleCopyAll = () => {
-    const allPrompts = state.prompts.join('\n');
+    const allPrompts = state.prompts.map((p, i) => `${i+1}. ${p}`).join('\n');
     navigator.clipboard.writeText(allPrompts);
     toast({
       title: 'Copied!',
