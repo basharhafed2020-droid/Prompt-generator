@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { Sparkles, Loader2, Bot, Copy } from 'lucide-react';
+import { Sparkles, Loader2, Bot, Copy, ChevronDown, Search } from 'lucide-react';
 import { PromptItem } from './prompt-item';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -25,7 +25,11 @@ import type { HistoryItem } from '@/lib/types';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Switch } from '@/components/ui/switch';
 import { countries } from '@/lib/countries';
-
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const initialState = {
   message: null,
@@ -64,6 +68,10 @@ export function PromptGenerator() {
   const { user } = useUser();
   const firestore = useFirestore();
 
+  const [topic, setTopic] = useState('');
+  const [countrySearch, setCountrySearch] = useState('');
+  const [isCountryPopoverOpen, setCountryPopoverOpen] = useState(false);
+
   const historyCollectionRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return collection(firestore, `users/${user.uid}/prompts`);
@@ -84,9 +92,9 @@ export function PromptGenerator() {
     }
 
     if (state.message === 'Success' && state.prompts.length > 0 && user && firestore) {
-      const topic = formRef.current?.topic.value;
+      const topicValue = formRef.current?.topic.value;
       const newHistoryItem = {
-        topic: topic,
+        topic: topicValue,
         number: promptCount,
         prompts: state.prompts,
         createdAt: new Date().toISOString(),
@@ -122,6 +130,10 @@ export function PromptGenerator() {
     });
   };
 
+  const filteredCountries = countries.filter(country => 
+    country.toLowerCase().includes(countrySearch.toLowerCase())
+  );
+
   return (
     <>
       <div className="mt-12 grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
@@ -146,18 +158,52 @@ export function PromptGenerator() {
                   placeholder="e.g., Mystical Forest, Tokyo at Night"
                   required
                   className="py-6 text-base"
-                  list="countries-list"
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
                 />
-                <datalist id="countries-list">
-                  {countries.map((country) => (
-                    <option key={country} value={country} />
-                  ))}
-                </datalist>
-                {state.errors?.topic && (
+                 {state.errors?.topic && (
                   <p className="text-sm font-medium text-destructive pt-1">
                     {state.errors.topic[0]}
                   </p>
                 )}
+                 <Popover open={isCountryPopoverOpen} onOpenChange={setCountryPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between">
+                      Choose a country
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <div className="p-2 border-b">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                          placeholder="Search countries..."
+                          value={countrySearch}
+                          onChange={(e) => setCountrySearch(e.target.value)}
+                          className="pl-9"
+                        />
+                      </div>
+                    </div>
+                    <ScrollArea className="h-72">
+                      <div className="p-2">
+                        {filteredCountries.map(country => (
+                          <Button
+                            key={country}
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={() => {
+                              setTopic(country);
+                              setCountryPopoverOpen(false);
+                            }}
+                          >
+                            {country}
+                          </Button>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="space-y-4">
