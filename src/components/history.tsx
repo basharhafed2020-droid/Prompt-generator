@@ -8,9 +8,10 @@ import {
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, Hash, FileText, Trash2, FolderOpen } from 'lucide-react';
+import { Clock, Hash, FileText, Trash2, FolderOpen, Copy } from 'lucide-react';
 import { PromptItem } from './prompt-item';
 import type { HistoryItem } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
 
 interface HistoryProps {
   items: HistoryItem[];
@@ -18,6 +19,8 @@ interface HistoryProps {
 }
 
 export function History({ items, onClear }: HistoryProps) {
+  const { toast } = useToast();
+
   if (items.length === 0) {
     return (
         <Card className="shadow-xl rounded-xl bg-card">
@@ -30,6 +33,15 @@ export function History({ items, onClear }: HistoryProps) {
       </Card>
     )
   }
+
+  const handleCopyAll = (prompts: string[]) => {
+    const allPrompts = prompts.join('\n');
+    navigator.clipboard.writeText(allPrompts);
+    toast({
+      title: 'Copied!',
+      description: 'All prompts from this history item have been copied.',
+    });
+  };
 
   return (
     <Card className="shadow-xl rounded-xl bg-card">
@@ -63,10 +75,16 @@ export function History({ items, onClear }: HistoryProps) {
                     </div>
                   </div>
                   <div className="border-t border-border pt-4">
-                    <h4 className="font-semibold mb-3 flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-primary" />
-                      Generated Prompts
-                    </h4>
+                    <div className="flex justify-between items-center mb-3">
+                        <h4 className="font-semibold flex items-center gap-2">
+                            <FileText className="h-5 w-5 text-primary" />
+                            Generated Prompts
+                        </h4>
+                        <Button variant="outline" size="sm" onClick={() => handleCopyAll(item.prompts)}>
+                            <Copy className="mr-2 h-4 w-4" />
+                            Copy All
+                        </Button>
+                    </div>
                     <ul className="space-y-3">
                       {item.prompts.map((prompt, index) => (
                         <PromptItem key={index} prompt={prompt} />
