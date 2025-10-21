@@ -24,6 +24,7 @@ import { addDoc, collection, deleteDoc, getDocs, query } from 'firebase/firestor
 import type { HistoryItem } from '@/lib/types';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Switch } from '@/components/ui/switch';
+import { countries } from '@/lib/countries';
 
 
 const initialState = {
@@ -145,7 +146,13 @@ export function PromptGenerator() {
                   placeholder="e.g., Mystical Forest, Tokyo at Night"
                   required
                   className="py-6 text-base"
+                  list="countries-list"
                 />
+                <datalist id="countries-list">
+                  {countries.map((country) => (
+                    <option key={country} value={country} />
+                  ))}
+                </datalist>
                 {state.errors?.topic && (
                   <p className="text-sm font-medium text-destructive pt-1">
                     {state.errors.topic[0]}
