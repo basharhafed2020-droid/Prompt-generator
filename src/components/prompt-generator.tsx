@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { Sparkles, Loader2, Bot } from 'lucide-react';
+import { Sparkles, Loader2, Bot, Copy } from 'lucide-react';
 import { PromptItem } from './prompt-item';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -112,6 +112,15 @@ export function PromptGenerator() {
     return [...history].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [history]);
 
+  const handleCopyAll = () => {
+    const allPrompts = state.prompts.join('\n');
+    navigator.clipboard.writeText(allPrompts);
+    toast({
+      title: 'Copied!',
+      description: 'All prompts have been copied to your clipboard.',
+    });
+  };
+
   return (
     <>
       <div className="mt-12 grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
@@ -183,12 +192,22 @@ export function PromptGenerator() {
 
         <Card className="shadow-xl lg:col-span-3 rounded-xl min-h-[500px] flex flex-col bg-card">
           <CardHeader>
-            <CardTitle className="font-headline text-3xl">
-              Generated Prompts
-            </CardTitle>
-            <CardDescription>
-              Here are the AI-generated prompts for your topic.
-            </CardDescription>
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle className="font-headline text-3xl">
+                  Generated Prompts
+                </CardTitle>
+                <CardDescription>
+                  Here are the AI-generated prompts for your topic.
+                </CardDescription>
+              </div>
+              {state.prompts.length > 0 && (
+                <Button variant="outline" size="sm" onClick={handleCopyAll}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copy All
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="flex-grow flex flex-col">
             <ScrollArea className="flex-grow pr-4 -mr-4">
