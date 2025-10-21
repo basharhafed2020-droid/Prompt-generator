@@ -13,6 +13,7 @@ const formSchema = z.object({
     .int()
     .min(1, 'Number must be at least 1.')
     .max(100, 'Number cannot exceed 100.'),
+  unique: z.boolean(),
 });
 
 type FormState = {
@@ -28,6 +29,7 @@ export async function handleGeneratePrompts(prevState: FormState, formData: Form
   const validatedFields = formSchema.safeParse({
     topic: formData.get('topic'),
     number: formData.get('number'),
+    unique: formData.get('unique') === 'on',
   });
 
   if (!validatedFields.success) {

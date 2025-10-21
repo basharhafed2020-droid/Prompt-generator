@@ -23,6 +23,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import { addDoc, collection, deleteDoc, getDocs, query } from 'firebase/firestore';
 import type { HistoryItem } from '@/lib/types';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { Switch } from '@/components/ui/switch';
 
 
 const initialState = {
@@ -166,6 +167,13 @@ export function PromptGenerator() {
                     {state.errors.number[0]}
                   </p>
                 )}
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch id="unique" name="unique" />
+                <Label htmlFor="unique" className="text-base">
+                  Make it unique & original
+                </Label>
               </div>
 
               <SubmitButton />
