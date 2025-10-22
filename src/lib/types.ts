@@ -6,4 +6,5 @@ export type HistoryItem = {
   prompts: string[];
   createdAt: string;
   userId: string;
+  unique?: boolean;
 };

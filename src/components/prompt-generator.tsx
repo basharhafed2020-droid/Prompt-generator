@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState, useEffect, useRef, useMemo } from 'react';
+import { useActionState, useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useFormStatus } from 'react-dom';
 import { handleGeneratePrompts } from '@/app/actions';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { Sparkles, Loader2, Bot, Copy, ChevronDown, Search } from 'lucide-react';
+import { Sparkles, Loader2, Bot, Copy, ChevronDown, Search, Lightbulb } from 'lucide-react';
 import { PromptItem } from './prompt-item';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -30,12 +30,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { cn } from '@/lib/utils';
 
 const initialState = {
   message: null,
   errors: null,
   prompts: [],
 };
+
+const popularNiches = ["Nature", "Fantasy", "Products", "Portraits", "Sci-Fi", "Cyberpunk", "Abstract", "Food Photography"];
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -69,6 +72,7 @@ export function PromptGenerator() {
   const firestore = useFirestore();
 
   const [topic, setTopic] = useState('');
+  const [isUnique, setIsUnique] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
   const [isCountryPopoverOpen, setCountryPopoverOpen] = useState(false);
 
@@ -93,12 +97,14 @@ export function PromptGenerator() {
 
     if (state.message === 'Success' && state.prompts.length > 0 && user && firestore) {
       const topicValue = formRef.current?.topic.value;
+      const uniqueValue = formRef.current?.unique.checked;
       const newHistoryItem = {
         topic: topicValue,
         number: promptCount,
         prompts: state.prompts,
         createdAt: new Date().toISOString(),
         userId: user.uid,
+        unique: uniqueValue,
       };
       const historyRef = collection(firestore, `users/${user.uid}/prompts`);
       addDocumentNonBlocking(historyRef, newHistoryItem);
@@ -115,6 +121,21 @@ export function PromptGenerator() {
         });
     });
   };
+
+  const handleRegenerate = useCallback((topic: string, number: number, unique: boolean) => {
+    setTopic(topic);
+    setPromptCount(number);
+    setIsUnique(unique);
+    // Directly submit the form
+    const formData = new FormData();
+    formData.append('topic', topic);
+    formData.append('number', String(number));
+    if (unique) {
+      formData.append('unique', 'on');
+    }
+    formAction(formData);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [formAction]);
   
   const sortedHistory = useMemo(() => {
     if (!history) return [];
@@ -134,6 +155,11 @@ export function PromptGenerator() {
     country.toLowerCase().includes(countrySearch.toLowerCase())
   );
 
+  const handleSuggestNiche = () => {
+    const randomNiche = popularNiches[Math.floor(Math.random() * popularNiches.length)];
+    setTopic(randomNiche);
+  };
+
   return (
     <>
       <div className="mt-12 grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
@@ -152,15 +178,20 @@ export function PromptGenerator() {
                 <Label htmlFor="topic" className="text-lg">
                   Topic
                 </Label>
-                <Input
-                  id="topic"
-                  name="topic"
-                  placeholder="e.g., Mystical Forest, Tokyo at Night"
-                  required
-                  className="py-6 text-base"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                />
+                <div className="flex gap-2">
+                    <Input
+                    id="topic"
+                    name="topic"
+                    placeholder="e.g., Mystical Forest, Tokyo at Night"
+                    required
+                    className="py-6 text-base"
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    />
+                    <Button type="button" variant="outline" size="icon" onClick={handleSuggestNiche}>
+                        <Lightbulb className="h-5 w-5" />
+                    </Button>
+                </div>
                  {state.errors?.topic && (
                   <p className="text-sm font-medium text-destructive pt-1">
                     {state.errors.topic[0]}
@@ -232,7 +263,7 @@ export function PromptGenerator() {
               </div>
 
               <div className="flex items-center space-x-2">
-                <Switch id="unique" name="unique" />
+                <Switch id="unique" name="unique" checked={isUnique} onCheckedChange={setIsUnique} />
                 <Label htmlFor="unique" className="text-base">
                   Make it unique & original
                 </Label>
@@ -267,7 +298,9 @@ export function PromptGenerator() {
               {state.prompts.length > 0 ? (
                 <ul className="space-y-3">
                   {state.prompts.map((prompt, index) => (
-                    <PromptItem key={index} prompt={prompt} />
+                    <li key={index} className="animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
+                      <PromptItem prompt={prompt} />
+                    </li>
                   ))}
                 </ul>
               ) : (
@@ -291,7 +324,7 @@ export function PromptGenerator() {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         ) : (
-            <History items={sortedHistory} onClear={handleClearHistory} />
+            <History items={sortedHistory} onClear={handleClearHistory} onRegenerate={handleRegenerate} />
         )}
         </div>
     </>
