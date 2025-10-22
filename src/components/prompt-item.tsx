@@ -12,18 +12,15 @@ import {
 
 interface PromptItemProps {
   prompt: string;
+  number: number;
   onDelete?: () => void;
 }
 
-export function PromptItem({ prompt, onDelete }: PromptItemProps) {
+export function PromptItem({ prompt, number, onDelete }: PromptItemProps) {
   const [copied, setCopied] = useState(false);
 
-  const match = prompt.match(/^(\d+)\.\s*(.*)/);
-  const number = match ? match[1] : '';
-  const promptText = match ? match[2] : prompt;
-
   const handleCopy = () => {
-    navigator.clipboard.writeText(promptText);
+    navigator.clipboard.writeText(prompt);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -33,7 +30,7 @@ export function PromptItem({ prompt, onDelete }: PromptItemProps) {
       <span className="font-mono font-bold text-primary text-lg w-6 text-right pt-0.5">
         {number}.
       </span>
-      <p className="flex-1 pt-0.5">{promptText}</p>
+      <p className="flex-1 pt-0.5">{prompt}</p>
       <TooltipProvider>
         <div className="flex items-center">
           {onDelete && (

@@ -96,20 +96,19 @@ export function PromptGenerator() {
     }
 
     if (state.message === 'Success' && state.prompts.length > 0 && user && firestore) {
-      const topicValue = formRef.current?.topic.value;
-      const uniqueValue = (formRef.current?.elements.namedItem('unique') as HTMLInputElement)?.checked;
+      const formData = new FormData(formRef.current!);
       const newHistoryItem = {
-        topic: topicValue,
-        number: promptCount,
+        topic: formData.get('topic') as string,
+        number: parseInt(formData.get('number') as string, 10),
         prompts: state.prompts,
         createdAt: new Date().toISOString(),
         userId: user.uid,
-        unique: !!uniqueValue,
+        unique: formData.get('unique') === 'on',
       };
       const historyRef = collection(firestore, `users/${user.uid}/prompts`);
       addDocumentNonBlocking(historyRef, newHistoryItem);
     }
-  }, [state, toast, promptCount, user, firestore]);
+  }, [state, toast, user, firestore]);
 
   const handleClearHistory = async () => {
     if (!user || !firestore) return;
@@ -299,7 +298,7 @@ export function PromptGenerator() {
                 <ul className="space-y-3">
                   {state.prompts.map((prompt, index) => (
                     <li key={index} className="animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
-                      <PromptItem prompt={prompt} />
+                      <PromptItem prompt={prompt} number={index + 1} />
                     </li>
                   ))}
                 </ul>

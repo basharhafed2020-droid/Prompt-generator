@@ -44,7 +44,8 @@ export function History({ items, onClear, onRegenerate }: HistoryProps) {
   }
 
   const handleCopyAll = (prompts: string[]) => {
-    const allPrompts = prompts.join('\n');
+    // Ensure prompts are numbered correctly upon copying.
+    const allPrompts = prompts.map((prompt, index) => `${index + 1}. ${prompt}`).join('\n');
     navigator.clipboard.writeText(allPrompts);
     toast({
       title: 'Copied!',
@@ -162,7 +163,8 @@ export function History({ items, onClear, onRegenerate }: HistoryProps) {
                       <ul className="space-y-3">
                         {item.prompts.map((prompt, index) => (
                           <PromptItem 
-                            key={index} 
+                            key={index}
+                            number={index + 1}
                             prompt={prompt} 
                             onDelete={() => handleDeleteSinglePrompt(item.id, prompt)}
                           />
