@@ -15,7 +15,7 @@ import type { HistoryItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from './ui/input';
 import { useUser, useFirestore } from '@/firebase';
-import { deleteDoc, doc } from 'firebase/firestore';
+import { deleteDoc, doc, updateDoc, arrayRemove } from 'firebase/firestore';
 
 
 interface HistoryProps {
@@ -67,6 +67,25 @@ export function History({ items, onClear, onRegenerate }: HistoryProps) {
         variant: 'destructive',
         title: 'Error',
         description: 'Could not delete the history item.',
+      });
+    }
+  };
+
+  const handleDeleteSinglePrompt = async (itemId: string, promptToDelete: string) => {
+    if (!user || !firestore) return;
+    try {
+      const itemRef = doc(firestore, `users/${user.uid}/prompts`, itemId);
+      await updateDoc(itemRef, {
+        prompts: arrayRemove(promptToDelete)
+      });
+      // We don't show a toast here to avoid being too noisy,
+      // the UI will update automatically from the real-time listener.
+    } catch (error) {
+      console.error("Error deleting single prompt:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not delete the prompt.',
       });
     }
   };
@@ -142,7 +161,11 @@ export function History({ items, onClear, onRegenerate }: HistoryProps) {
                       </h4>
                       <ul className="space-y-3">
                         {item.prompts.map((prompt, index) => (
-                          <PromptItem key={index} prompt={prompt} />
+                          <PromptItem 
+                            key={index} 
+                            prompt={prompt} 
+                            onDelete={() => handleDeleteSinglePrompt(item.id, prompt)}
+                          />
                         ))}
                       </ul>
                     </div>
