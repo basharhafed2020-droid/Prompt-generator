@@ -14,6 +14,9 @@ import { PromptItem } from './prompt-item';
 import type { HistoryItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from './ui/input';
+import { useUser, useFirestore } from '@/firebase';
+import { deleteDoc, doc } from 'firebase/firestore';
+
 
 interface HistoryProps {
   items: HistoryItem[];
@@ -24,6 +27,8 @@ interface HistoryProps {
 export function History({ items, onClear, onRegenerate }: HistoryProps) {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const { user } = useUser();
+  const firestore = useFirestore();
 
   if (items.length === 0 && !searchTerm) {
     return (
@@ -45,6 +50,25 @@ export function History({ items, onClear, onRegenerate }: HistoryProps) {
       title: 'Copied!',
       description: 'All prompts from this history item have been copied.',
     });
+  };
+
+  const handleDeleteItem = async (itemId: string) => {
+    if (!user || !firestore) return;
+    try {
+      const itemRef = doc(firestore, `users/${user.uid}/prompts`, itemId);
+      await deleteDoc(itemRef);
+      toast({
+        title: 'Deleted!',
+        description: 'The history item has been removed.',
+      });
+    } catch (error) {
+      console.error("Error deleting history item:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not delete the history item.',
+      });
+    }
   };
 
   const filteredItems = items.filter(item => 
@@ -100,11 +124,14 @@ export function History({ items, onClear, onRegenerate }: HistoryProps) {
                             </div>
                         </div>
                          <div className="flex gap-2">
-                            <Button variant="outline" size="icon" onClick={() => handleCopyAll(item.prompts)}>
+                            <Button variant="outline" size="icon" title="Copy All" onClick={() => handleCopyAll(item.prompts)}>
                                 <Copy className="h-4 w-4" />
                             </Button>
-                            <Button variant="outline" size="icon" onClick={() => onRegenerate(item.topic, item.number, item.unique ?? false)}>
+                            <Button variant="outline" size="icon" title="Regenerate" onClick={() => onRegenerate(item.topic, item.number, item.unique ?? false)}>
                                 <RefreshCw className="h-4 w-4" />
+                            </Button>
+                            <Button variant="destructive" size="icon" title="Delete Item" onClick={() => handleDeleteItem(item.id)}>
+                                <Trash2 className="h-4 w-4" />
                             </Button>
                         </div>
                     </div>

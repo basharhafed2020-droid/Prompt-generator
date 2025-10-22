@@ -24,31 +24,41 @@ const GenerateImagePromptsOutputSchema = z.object({
 export type GenerateImagePromptsOutput = z.infer<typeof GenerateImagePromptsOutputSchema>;
 
 export async function generateImagePrompts(input: GenerateImagePromptsInput): Promise<GenerateImagePromptsOutput> {
-  return generateImagePromptsFlow(input);
+  const result = await generateImagePromptsFlow(input);
+  // Post-process to ensure numbering is correct and content adheres to rules.
+  // The model can sometimes fail to follow numbering instructions perfectly.
+  const cleanedPrompts = result.prompts.map((p, index) => {
+    // Remove any existing numbering like "1. " or "1) "
+    const textOnly = p.replace(/^\d+[\.\)]\s*/, '');
+    return `${index + 1}. ${textOnly}`;
+  });
+  return { prompts: cleanedPrompts };
 }
 
 const generateImagePromptsPrompt = ai.definePrompt({
   name: 'generateImagePromptsPrompt',
   input: {schema: GenerateImagePromptsInputSchema},
   output: {schema: GenerateImagePromptsOutputSchema},
-  prompt: `You are an AI assistant specialized in generating unique, highly-detailed, and artistic image generation prompts.
+  prompt: `You are an AI assistant specialized in generating unique, highly-detailed, and artistic image generation prompts for landscapes, architecture, and inanimate objects.
 
 I will give you a topic (niche, country, or theme) and a number. You will generate that number of unique image generation prompts suitable for AI image generators like Midjourney, Leonardo, Firefly, and DALL·E.
 
 Topic: {{{topic}}}
 Number of prompts: {{{number}}}
 
-Instructions:
-1. Each prompt must be a detailed paragraph. Describe the camera angle (e.g., Dutch angle, drone shot), the setting's specific details, textures, the sky (e.g., stormy, aurora borealis), lighting (e.g., dramatic backlighting, chiaroscuro), color palette, overall mood, and a specific artistic style (e.g., afrofuturism, vaporwave, magical realism).
+**CRITICAL INSTRUCTIONS:**
+1.  **NO LIVING BEINGS:** Absolutely NO humans, animals, spirits, or any living creatures in the prompts. Focus strictly on landscapes, cityscapes, architecture, nature, and inanimate objects. This is a strict rule.
+2.  **Explicit Naming:** If the topic is a country (e.g., "Yemen"), you MUST explicitly mention the country's name or a related adjective (e.g., "Yemeni") in every single prompt.
+3.  **Incorporate Famous Landmarks:** When the topic is a country, you MUST include its famous historical and natural landmarks. For example, for Yemen, include landmarks like the Queen of Sheba's throne (Arsh Bilqis), Socotra Island, Old Sana'a, Dar al-Hajar, etc.
+4.  **Detailed Paragraphs:** Each prompt must be a detailed paragraph. Describe the camera angle (e.g., Dutch angle, drone shot), the setting's specific details, textures, the sky (e.g., stormy, aurora borealis), lighting (e.g., dramatic backlighting, chiaroscuro), color palette, overall mood, and a specific artistic style (e.g., afrofuturism, vaporwave, magical realism).
 {{#if unique}}
-2. **Originality is Key:** Generate prompts for unique, original compositions that do not closely resemble existing stock images. Think about unexpected combinations, surreal concepts, and unconventional perspectives. Avoid generic scenes (e.g., "business people shaking hands").
-3. **Example of a good, detailed, and original prompt:** "A cinematic low-angle shot from inside a bioluminescent cave, where glowing crystalline structures illuminate an ancient, moss-covered library. A lone scholar, dressed in futuristic robes, is studying a holographic star map projected from a floating artifact. The air is thick with shimmering spores, and the lighting is a mix of cool blues from the crystals and warm golds from the hologram, creating a stark contrast. The mood is one of quiet discovery and ancient mystery, rendered in a style that blends science fiction with dark fantasy."
+5.  **Originality is Key:** Generate prompts for unique, original compositions that do not closely resemble existing stock images. Think about unexpected combinations, surreal concepts, and unconventional perspectives. Avoid generic scenes.
+6.  **Example of a good, detailed, and original prompt:** "A cinematic low-angle shot from inside a bioluminescent cave on Socotra Island, Yemen, where glowing crystalline structures illuminate an ancient, moss-covered library filled with stone tablets. The air is thick with shimmering spores, and the lighting is a mix of cool blues from the crystals and warm golds from a single beam of dawn light, creating a stark contrast. The mood is one of quiet discovery and ancient mystery, rendered in a style that blends science fiction with dark fantasy."
 {{/if}}
-4.  Use English only.
-5.  Start each prompt with a sequential number (1., 2., 3., etc.).
-6.  Do not add any extra text other than the prompts themselves.
-7.  Do not use any unnecessary symbols.
-8.  Do not include inappropriate content.
+7.  Use English only.
+8.  Do not add any extra text other than the prompts themselves.
+9.  Do not use any unnecessary symbols.
+10. Do not include inappropriate content.
 `,
 });
 
