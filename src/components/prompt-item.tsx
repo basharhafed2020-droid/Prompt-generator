@@ -28,7 +28,7 @@ export function PromptItem({ prompt }: PromptItemProps) {
   };
 
   return (
-    <li className="flex items-start gap-4 p-4 bg-background rounded-lg border transition-all hover:border-primary/50 hover:bg-card">
+    <div className="flex items-start gap-4 p-4 bg-background rounded-lg border transition-all hover:border-primary/50 hover:bg-card">
       <span className="font-mono font-bold text-primary text-lg w-6 text-right pt-0.5">
         {number}.
       </span>
@@ -54,6 +54,6 @@ export function PromptItem({ prompt }: PromptItemProps) {
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-    </li>
+    </div>
   );
 }
