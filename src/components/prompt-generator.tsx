@@ -97,14 +97,14 @@ export function PromptGenerator() {
 
     if (state.message === 'Success' && state.prompts.length > 0 && user && firestore) {
       const topicValue = formRef.current?.topic.value;
-      const uniqueValue = formRef.current?.unique.checked;
+      const uniqueValue = (formRef.current?.elements.namedItem('unique') as HTMLInputElement)?.checked;
       const newHistoryItem = {
         topic: topicValue,
         number: promptCount,
         prompts: state.prompts,
         createdAt: new Date().toISOString(),
         userId: user.uid,
-        unique: uniqueValue,
+        unique: !!uniqueValue,
       };
       const historyRef = collection(firestore, `users/${user.uid}/prompts`);
       addDocumentNonBlocking(historyRef, newHistoryItem);
