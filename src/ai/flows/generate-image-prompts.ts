@@ -27,10 +27,11 @@ export async function generateImagePrompts(input: GenerateImagePromptsInput): Pr
   const result = await generateImagePromptsFlow(input);
   // Post-process to ensure numbering is correct and content adheres to rules.
   // The model can sometimes fail to follow numbering instructions perfectly.
-  const cleanedPrompts = result.prompts.map((p, index) => {
+  const cleanedPrompts = result.prompts.map((p) => {
     // Remove any existing numbering like "1. " or "1) "
     const textOnly = p.replace(/^\d+[\.\)]\s*/, '');
-    return `${index + 1}. ${textOnly}`;
+    // The main function will add numbering back.
+    return textOnly;
   });
   return { prompts: cleanedPrompts };
 }
@@ -48,8 +49,8 @@ Number of prompts: {{{number}}}
 
 **CRITICAL INSTRUCTIONS:**
 1.  **NO LIVING BEINGS:** Absolutely NO humans, animals, spirits, or any living creatures in the prompts. Focus strictly on landscapes, cityscapes, architecture, nature, and inanimate objects. This is a strict rule.
-2.  **Explicit Naming:** If the topic is a country (e.g., "Yemen"), you MUST explicitly mention the country's name or a related adjective (e.g., "Yemeni") in every single prompt.
-3.  **Incorporate Famous Landmarks:** When the topic is a country, you MUST include its famous historical and natural landmarks. For example, for Yemen, include landmarks like the Queen of Sheba's throne (Arsh Bilqis), Socotra Island, Old Sana'a, Dar al-Hajar, etc.
+2.  **Explicit Naming:** If the topic is a country, you MUST explicitly mention the country's name or a related adjective (e.g., "Yemeni" for Yemen) in every single prompt.
+3.  **Incorporate Famous Landmarks:** When the topic is a country, you MUST prioritize and include its most famous and important historical and natural landmarks.
 4.  **Detailed Paragraphs:** Each prompt must be a detailed paragraph. Describe the camera angle (e.g., Dutch angle, drone shot), the setting's specific details, textures, the sky (e.g., stormy, aurora borealis), lighting (e.g., dramatic backlighting, chiaroscuro), color palette, overall mood, and a specific artistic style (e.g., afrofuturism, vaporwave, magical realism).
 {{#if unique}}
 5.  **Originality is Key:** Generate prompts for unique, original compositions that do not closely resemble existing stock images. Think about unexpected combinations, surreal concepts, and unconventional perspectives. Avoid generic scenes.
