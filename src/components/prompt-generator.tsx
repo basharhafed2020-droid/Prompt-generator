@@ -51,12 +51,12 @@ function SubmitButton() {
       {pending ? (
         <>
           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-          يتم توليد الأفكار...
+          Generating...
         </>
       ) : (
         <>
           <Sparkles className="mr-2 h-5 w-5" />
-          توليد الأفكار
+          Generate Prompts
         </>
       )}
     </Button>
