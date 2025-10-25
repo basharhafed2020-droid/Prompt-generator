@@ -82,9 +82,3 @@
     @apply bg-background text-foreground;
   }
 }
-
-@layer components {
-  .light .btn-primary, .light .btn-secondary, .light .btn-ghost, .light .btn-outline {
-      @apply bg-primary text-primary-foreground;
-  }
-}
