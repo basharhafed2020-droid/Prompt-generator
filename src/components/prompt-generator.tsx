@@ -46,7 +46,7 @@ function SubmitButton() {
     <Button
       type="submit"
       disabled={pending}
-      className="w-full text-base py-6 bg-accent hover:bg-accent/90 text-accent-foreground"
+      className="w-full text-base py-6"
     >
       {pending ? (
         <>
