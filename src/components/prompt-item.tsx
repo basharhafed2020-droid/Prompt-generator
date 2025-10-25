@@ -26,7 +26,7 @@ export function PromptItem({ prompt, number, onDelete }: PromptItemProps) {
   };
 
   return (
-    <div className="flex items-start gap-4 p-4 bg-background rounded-lg border transition-all hover:border-primary/50 hover:bg-card">
+    <div className="flex items-start gap-4 p-4 bg-secondary rounded-lg border border-transparent transition-all hover:border-primary/50">
       <span className="font-mono font-bold text-primary text-lg w-6 text-right pt-0.5">
         {number}.
       </span>

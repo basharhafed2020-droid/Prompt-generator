@@ -162,7 +162,7 @@ export function PromptGenerator() {
   return (
     <>
       <div className="mt-12 grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
-        <Card className="shadow-xl lg:col-span-2 rounded-xl border-2 border-primary/20 bg-card">
+        <Card className="shadow-xl lg:col-span-2 rounded-xl bg-card">
           <CardHeader>
             <CardTitle className="font-headline text-3xl">
               Create Your Prompts

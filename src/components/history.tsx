@@ -124,7 +124,7 @@ export function History({ items, onClear, onRegenerate }: HistoryProps) {
           <Accordion type="multiple" className="w-full">
             {filteredItems.map(item => (
               <AccordionItem key={item.id} value={item.id} className="border-b-0 mb-2">
-                <AccordionTrigger className="font-headline text-xl bg-background rounded-lg p-4 hover:no-underline hover:bg-muted/50">
+                <AccordionTrigger className="font-headline text-xl bg-secondary rounded-lg p-4 hover:no-underline hover:bg-muted/50">
                   <div className="flex items-center gap-3">
                       <FolderOpen className="h-6 w-6 text-primary" />
                       <span>{item.topic}</span>
