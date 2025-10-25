@@ -62,11 +62,7 @@ export default function Home() {
           <AuthButton />
         </div>
       </header>
-      <div className="flex flex-col items-center text-center">
-        <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-          by Artify AI
-        </p>
-      </div>
+      
       {isUserLoading && isClient ? (
          <div className="flex items-center justify-center h-64">
             <Loader2 className="h-16 w-16 text-primary animate-spin" />
