@@ -7,6 +7,7 @@ import { useUser } from '@/firebase';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { getAuth, signOut } from 'firebase/auth';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 function AuthButton() {
   const { user, isUserLoading } = useUser();
@@ -51,14 +52,17 @@ export default function Home() {
     <main className="container mx-auto px-4 py-8 md:py-16">
       <div className="flex flex-col items-center text-center">
         <div className="flex items-center justify-between w-full">
-            <div></div>
+            <div className="w-24"></div>
             <div className="flex items-center gap-4">
                 <Wand2 className="h-10 w-10 text-primary" />
                 <h1 className="font-headline text-5xl md:text-6xl font-bold tracking-tight">
                     B:) R
                 </h1>
             </div>
-            <AuthButton />
+            <div className="flex items-center gap-2 w-24 justify-end">
+              <ThemeToggle />
+              <AuthButton />
+            </div>
         </div>
         <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
           by Artify AI
