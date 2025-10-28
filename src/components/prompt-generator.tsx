@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useActionState, useState, useEffect, useRef, useCallback } from 'react';
 import { useFormStatus } from 'react-dom';
 import { handleGeneratePrompts } from '@/app/actions';
 import { Button } from '@/components/ui/button';
@@ -18,11 +18,6 @@ import { Sparkles, Loader2, Bot, Copy, ChevronDown, Search, Lightbulb } from 'lu
 import { PromptItem } from './prompt-item';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { History } from './history';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { addDoc, collection, deleteDoc, getDocs, query } from 'firebase/firestore';
-import type { HistoryItem } from '@/lib/types';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Switch } from '@/components/ui/switch';
 import { countries } from '@/lib/countries';
 import {
@@ -30,7 +25,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from '@/lib/utils';
 
 const initialState = {
   message: null,
@@ -68,21 +62,12 @@ export function PromptGenerator() {
   const [promptCount, setPromptCount] = useState(10);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const { user } = useUser();
-  const firestore = useFirestore();
 
   const [topic, setTopic] = useState('');
   const [isUnique, setIsUnique] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
   const [isCountryPopoverOpen, setCountryPopoverOpen] = useState(false);
-
-  const historyCollectionRef = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return collection(firestore, `users/${user.uid}/prompts`);
-  }, [user, firestore]);
-
-  const { data: history, isLoading: isHistoryLoading } = useCollection<HistoryItem>(historyCollectionRef);
-
+  
   useEffect(() => {
     if (state.message && state.message !== 'Success') {
       const description = state.errors
@@ -94,52 +79,7 @@ export function PromptGenerator() {
         description: description,
       });
     }
-
-    if (state.message === 'Success' && state.prompts.length > 0 && user && firestore) {
-      const formData = new FormData(formRef.current!);
-      const newHistoryItem = {
-        topic: formData.get('topic') as string,
-        number: parseInt(formData.get('number') as string, 10),
-        prompts: state.prompts,
-        createdAt: new Date().toISOString(),
-        userId: user.uid,
-        unique: formData.get('unique') === 'on',
-      };
-      const historyRef = collection(firestore, `users/${user.uid}/prompts`);
-      addDocumentNonBlocking(historyRef, newHistoryItem);
-    }
-  }, [state, toast, user, firestore]);
-
-  const handleClearHistory = async () => {
-    if (!user || !firestore) return;
-    const historyRef = collection(firestore, `users/${user.uid}/prompts`);
-    const snapshot = await getDocs(historyRef);
-    snapshot.forEach((doc) => {
-        deleteDoc(doc.ref).catch(error => {
-            console.error("Error removing document: ", error);
-        });
-    });
-  };
-
-  const handleRegenerate = useCallback((topic: string, number: number, unique: boolean) => {
-    setTopic(topic);
-    setPromptCount(number);
-    setIsUnique(unique);
-    // Directly submit the form
-    const formData = new FormData();
-    formData.append('topic', topic);
-    formData.append('number', String(number));
-    if (unique) {
-      formData.append('unique', 'on');
-    }
-    formAction(formData);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [formAction]);
-  
-  const sortedHistory = useMemo(() => {
-    if (!history) return [];
-    return [...history].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [history]);
+  }, [state, toast]);
 
   const handleCopyAll = () => {
     const allPrompts = state.prompts.map((p, i) => `${i+1}. ${p}`).join('\n');
@@ -158,6 +98,21 @@ export function PromptGenerator() {
     const randomNiche = popularNiches[Math.floor(Math.random() * popularNiches.length)];
     setTopic(randomNiche);
   };
+
+  const handleRegenerate = useCallback((topic: string, number: number, unique: boolean) => {
+    setTopic(topic);
+    setPromptCount(number);
+    setIsUnique(unique);
+    // Directly submit the form
+    const formData = new FormData();
+    formData.append('topic', topic);
+    formData.append('number', String(number));
+    if (unique) {
+      formData.append('unique', 'on');
+    }
+    formAction(formData);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [formAction]);
 
   return (
     <>
@@ -317,15 +272,6 @@ export function PromptGenerator() {
           </CardContent>
         </Card>
       </div>
-      <div className="mt-12">
-        {isHistoryLoading ? (
-            <div className="flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        ) : (
-            <History items={sortedHistory} onClear={handleClearHistory} onRegenerate={handleRegenerate} />
-        )}
-        </div>
     </>
   );
 }
