@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState, useEffect, useRef, useCallback } from 'react';
+import { useActionState, useState, useEffect, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
 import { handleGeneratePrompts } from '@/app/actions';
 import { Button } from '@/components/ui/button';
@@ -61,8 +61,7 @@ export function PromptGenerator() {
   const [state, formAction] = useActionState(handleGeneratePrompts, initialState);
   const [promptCount, setPromptCount] = useState(10);
   const { toast } = useToast();
-  const formRef = useRef<HTMLFormElement>(null);
-
+  
   const [topic, setTopic] = useState('');
   const [isUnique, setIsUnique] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
@@ -99,21 +98,6 @@ export function PromptGenerator() {
     setTopic(randomNiche);
   };
 
-  const handleRegenerate = useCallback((topic: string, number: number, unique: boolean) => {
-    setTopic(topic);
-    setPromptCount(number);
-    setIsUnique(unique);
-    // Directly submit the form
-    const formData = new FormData();
-    formData.append('topic', topic);
-    formData.append('number', String(number));
-    if (unique) {
-      formData.append('unique', 'on');
-    }
-    formAction(formData);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [formAction]);
-
   return (
     <>
       <div className="mt-12 grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
@@ -127,7 +111,7 @@ export function PromptGenerator() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form ref={formRef} action={formAction} className="space-y-8">
+            <form action={formAction} className="space-y-8">
               <div className="space-y-2">
                 <Label htmlFor="topic" className="text-lg">
                   Topic
