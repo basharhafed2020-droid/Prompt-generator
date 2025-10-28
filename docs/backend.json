@@ -43,6 +43,10 @@
           "type": "number",
           "description": "The number of prompts that were generated."
         },
+        "unique": {
+            "type": "boolean",
+            "description": "Whether the 'unique' option was enabled for this generation."
+        },
         "prompts": {
           "type": "array",
           "items": {
@@ -62,7 +66,8 @@
         "topic",
         "number",
         "prompts",
-        "createdAt"
+        "createdAt",
+        "unique"
       ]
     }
   },

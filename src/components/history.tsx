@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -9,7 +10,7 @@ import {
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, Hash, FileText, Trash2, FolderOpen, Copy, RefreshCw, Search } from 'lucide-react';
+import { Clock, Hash, FileText, Trash2, FolderOpen, Copy, RefreshCw, Search, Loader2 } from 'lucide-react';
 import { PromptItem } from './prompt-item';
 import type { HistoryItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -20,31 +21,18 @@ import { deleteDoc, doc, updateDoc, arrayRemove } from 'firebase/firestore';
 
 interface HistoryProps {
   items: HistoryItem[];
+  isLoading: boolean;
   onClear: () => void;
   onRegenerate: (topic: string, number: number, unique: boolean) => void;
 }
 
-export function History({ items, onClear, onRegenerate }: HistoryProps) {
+export function History({ items, isLoading, onClear, onRegenerate }: HistoryProps) {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const { user } = useUser();
   const firestore = useFirestore();
 
-  if (items.length === 0 && !searchTerm) {
-    return (
-        <Card className="shadow-xl rounded-xl bg-card">
-        <CardHeader>
-          <CardTitle className="font-headline text-3xl">History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">Your prompt history is empty. Generate some prompts to see them here.</p>
-        </CardContent>
-      </Card>
-    )
-  }
-
   const handleCopyAll = (prompts: string[]) => {
-    // Ensure prompts are numbered correctly upon copying.
     const allPrompts = prompts.map((prompt, index) => `${index + 1}. ${prompt}`).join('\n');
     navigator.clipboard.writeText(allPrompts);
     toast({
@@ -79,8 +67,6 @@ export function History({ items, onClear, onRegenerate }: HistoryProps) {
       await updateDoc(itemRef, {
         prompts: arrayRemove(promptToDelete)
       });
-      // We don't show a toast here to avoid being too noisy,
-      // the UI will update automatically from the real-time listener.
     } catch (error) {
       console.error("Error deleting single prompt:", error);
       toast({
@@ -95,33 +81,23 @@ export function History({ items, onClear, onRegenerate }: HistoryProps) {
     item.topic.toLowerCase().includes(searchTerm.toLowerCase()) || 
     item.prompts.some(prompt => prompt.toLowerCase().includes(searchTerm.toLowerCase()))
   );
-
-
-  return (
-    <Card className="shadow-xl rounded-xl bg-card">
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <CardTitle className="font-headline text-3xl">History</CardTitle>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <div className="relative flex-grow">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search history..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 w-full"
-              />
+  
+  const renderContent = () => {
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-40">
+                <Loader2 className="h-8 w-8 text-primary animate-spin" />
             </div>
-            <Button variant="outline" size="sm" onClick={onClear}>
-              <Trash2 className="mr-2 h-4 w-4" />
-              Clear
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {filteredItems.length > 0 ? (
-          <Accordion type="multiple" className="w-full">
+        );
+    }
+    
+    if (items.length === 0 && !searchTerm) {
+        return <p className="text-muted-foreground">Your prompt history is empty. Generate some prompts to see them here.</p>;
+    }
+
+    if (filteredItems.length > 0) {
+        return (
+            <Accordion type="multiple" className="w-full">
             {filteredItems.map(item => (
               <AccordionItem key={item.id} value={item.id} className="border-b-0 mb-2">
                 <AccordionTrigger className="font-headline text-xl bg-secondary rounded-lg p-4 hover:no-underline hover:bg-muted/50">
@@ -176,12 +152,44 @@ export function History({ items, onClear, onRegenerate }: HistoryProps) {
               </AccordionItem>
             ))}
           </Accordion>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
+        );
+    }
+
+    return (
+        <div className="text-center py-8 text-muted-foreground">
             <Search className="mx-auto h-10 w-10 mb-2" />
             <p>No results found for "{searchTerm}".</p>
-          </div>
-        )}
+        </div>
+    );
+  }
+
+
+  return (
+    <Card className="shadow-xl rounded-xl bg-card">
+      <CardHeader>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <CardTitle className="font-headline text-3xl">History</CardTitle>
+          {items.length > 0 && (
+            <div className="flex gap-2 w-full sm:w-auto">
+                <div className="relative flex-grow">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                    placeholder="Search history..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9 w-full"
+                />
+                </div>
+                <Button variant="outline" size="sm" onClick={onClear}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Clear
+                </Button>
+            </div>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {renderContent()}
       </CardContent>
     </Card>
   );

@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useActionState, useState, useEffect } from 'react';
+import { useActionState, useState, useEffect, useMemo, useCallback } from 'react';
 import { useFormStatus } from 'react-dom';
 import { handleGeneratePrompts } from '@/app/actions';
 import { Button } from '@/components/ui/button';
@@ -25,14 +26,17 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { History } from './history';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy, deleteDoc, doc, getDocs } from 'firebase/firestore';
+import type { HistoryItem } from '@/lib/types';
+
 
 const initialState = {
   message: null,
   errors: null,
   prompts: [],
 };
-
-const popularNiches = ["Nature", "Fantasy", "Products", "Portraits", "Sci-Fi", "Cyberpunk", "Abstract", "Food Photography"];
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -67,6 +71,15 @@ export function PromptGenerator() {
   const [countrySearch, setCountrySearch] = useState('');
   const [isCountryPopoverOpen, setCountryPopoverOpen] = useState(false);
   
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const historyQuery = useMemoFirebase(() => 
+    user && firestore ? query(collection(firestore, `users/${user.uid}/prompts`), orderBy('createdAt', 'desc')) : null
+  , [user, firestore]);
+  
+  const { data: historyItems, isLoading: isHistoryLoading } = useCollection<HistoryItem>(historyQuery);
+
   useEffect(() => {
     if (state.message && state.message !== 'Success') {
       const description = state.errors
@@ -94,13 +107,47 @@ export function PromptGenerator() {
   );
 
   const handleSuggestNiche = () => {
+    const popularNiches = ["Nature", "Fantasy", "Products", "Portraits", "Sci-Fi", "Cyberpunk", "Abstract", "Food Photography"];
     const randomNiche = popularNiches[Math.floor(Math.random() * popularNiches.length)];
     setTopic(randomNiche);
+  };
+  
+  const handleRegenerate = useCallback((topic: string, number: number, unique: boolean) => {
+    setTopic(topic);
+    setPromptCount(number);
+    setIsUnique(unique);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  const handleClearHistory = async () => {
+    if (!user || !firestore || !historyItems) return;
+
+    const confirmation = window.confirm("Are you sure you want to delete your entire prompt history? This action cannot be undone.");
+    if (!confirmation) return;
+
+    const collectionRef = collection(firestore, `users/${user.uid}/prompts`);
+    
+    try {
+        const querySnapshot = await getDocs(collectionRef);
+        const deletePromises = querySnapshot.docs.map(docSnapshot => deleteDoc(doc(collectionRef, docSnapshot.id)));
+        await Promise.all(deletePromises);
+        toast({
+            title: 'History Cleared',
+            description: 'Your prompt history has been deleted.',
+        });
+    } catch (error) {
+        console.error("Error clearing history: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Could not clear your history. Please try again.',
+        });
+    }
   };
 
   return (
     <>
-      <div className="mt-12 grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
         <Card className="shadow-xl lg:col-span-2 rounded-xl bg-card">
           <CardHeader>
             <CardTitle className="font-headline text-3xl">
@@ -112,6 +159,7 @@ export function PromptGenerator() {
           </CardHeader>
           <CardContent>
             <form action={formAction} className="space-y-8">
+              <input type="hidden" name="userId" value={user?.uid} />
               <div className="space-y-2">
                 <Label htmlFor="topic" className="text-lg">
                   Topic
@@ -255,6 +303,15 @@ export function PromptGenerator() {
             </ScrollArea>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="mt-8">
+        <History 
+            items={historyItems || []} 
+            isLoading={isHistoryLoading}
+            onClear={handleClearHistory} 
+            onRegenerate={handleRegenerate} 
+        />
       </div>
     </>
   );
